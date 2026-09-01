@@ -1,0 +1,39 @@
+hub: "docker.io/istio"
+tag: "${ istio_image_version }"
+
+replicaCount: ${ enable_ha ? 2 : 1 }
+
+autoscaleEnabled: ${ istio_autoscale_enabled }
+autoscaleMin: 1
+autoscaleMax: 5
+autoscaleBehavior: {}
+rollingMaxSurge: 100%
+rollingMaxUnavailable: 25%
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+%{ if enable_ha ~}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/instance: istiod
+            app.kubernetes.io/name: istiod
+        topologyKey: kubernetes.io/hostname
+
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: istiod
+        app.kubernetes.io/name: istiod
+    maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+%{ endif ~}

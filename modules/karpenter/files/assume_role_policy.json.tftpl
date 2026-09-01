@@ -1,0 +1,21 @@
+statement {
+  effect  = "Allow"
+  actions = ["sts:AssumeRoleWithWebIdentity"]
+
+  principals {
+    type        = "Federated"
+    identifiers = ["${oidc_provider_arn}"]
+  }
+
+  condition {
+    test     = "StringEquals"
+    variable = "${oidc_provider_url}:aud"
+    values   = ["sts.amazonaws.com"]
+  }
+
+  condition {
+    test     = "StringEquals"
+    variable = "${oidc_provider_url}:sub"
+    values   = ["system:serviceaccount:kube-system:${karpenter_sa_name}"]
+  }
+}

@@ -1,0 +1,34 @@
+replicas: ${ initital_num_nodes }
+
+controller:
+  image:
+    tag: ${ karpenter_app_version }
+    digest: ""
+  env:
+    - name: AWS_REGION
+      value: ${ region }
+    - name: LEADER_ELECT
+      value: "true"
+  metrics:
+    port: 8000
+
+webhook:
+  enabled: false
+
+logLevel: info
+
+settings:
+  clusterName: ${ cluster_name }
+  interruptionQueue: ""
+
+hostNetwork: true
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+
+serviceAccount:
+  name: ${ karpenter_sa_name }
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${ account_id }:role/${ karpenter_iam_role_name }

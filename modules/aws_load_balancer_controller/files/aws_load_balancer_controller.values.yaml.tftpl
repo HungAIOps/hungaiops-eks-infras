@@ -1,0 +1,36 @@
+clusterName: ${ env }
+serviceAccount:
+  create: true
+  name: "aws-load-balancer-controller"
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${ account_id }:role/${ aws_load_balancer_controller__iam_role_name }
+hostNetwork: true
+ingressClassParams:
+  create: false
+
+replicaCount: ${ enable_ha ? 2 : 1 }
+metricsBindAddr: ":8787"
+
+%{ if enable_ha ~}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/instance: aws-load-balancer-controller
+            app.kubernetes.io/name: aws-load-balancer-controller
+        topologyKey: kubernetes.io/hostname
+
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: aws-load-balancer-controller
+        app.kubernetes.io/name: aws-load-balancer-controller
+    maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+%{ endif ~}
+
+enableServiceMutatorWebhook: false
+
+defaultTags: ${ yamlencode(common_tags) }
