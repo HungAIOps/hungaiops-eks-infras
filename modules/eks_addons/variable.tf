@@ -10,6 +10,11 @@ variable "region" {
   default     = "ap-southeast-1"
 }
 
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
+  type        = string
+}
+
 variable "oidc_provider_url" {
   description = "OIDC provider URL for the EKS cluster"
   type        = string

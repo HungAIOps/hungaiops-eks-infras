@@ -30,3 +30,9 @@ variable "enable_ha" {
   type        = bool
   default     = true
 }
+
+variable "ami_type" {
+  description = "AMI type for EKS worker nodes"
+  type        = string
+  default     = "AL2_x86_64"
+}

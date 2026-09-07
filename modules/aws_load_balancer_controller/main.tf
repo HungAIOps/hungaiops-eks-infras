@@ -5,8 +5,8 @@ resource "aws_iam_policy" "aws_lb_controller" {
   name        = "${var.region}-aws-load-balancer-controller"
   description = "IAM Policy for AWS Load Balancer Controller"
 
-  policy = templatefile("${path.module}/policy_document.json.tftpl", {
-    region = var.region
+  policy = templatefile("${path.module}/files/policy_document.json.tftpl", {
+    region     = var.region
     account_id = var.account_id
   })
 }
@@ -16,7 +16,7 @@ resource "aws_iam_role" "aws_lb_controller" {
   description = "ServiceAccount Role for AWS Load Balancer Controller."
 
   assume_role_policy = templatefile(
-    "${path.module}/policy_document.json.tftpl",
+    "${path.module}/files/assume_role_policy.json.tftpl",
     {
       aws_lb_controller_sa_name = local.aws_lb_controller_sa_name
       oidc_provider_url         = var.oidc_provider_url
@@ -44,13 +44,13 @@ resource "helm_release" "aws_lb_controller" {
   namespace  = "kube-system"
 
   values = [
-    templatefile("${path.module}/aws_lb_controller.values.yaml.tftpl", {
-      cluster_name         = var.env
-      region               = var.region
-      account_id           = var.account_id
-      aws_lb_controller__iam_role_name = local.aws_lb_controller_iam_role_name
-      enable_ha              = var.enable_ha
-      common_tags             = var.common_tags
+    templatefile("${path.module}/files/aws_load_balancer_controller.values.yaml.tftpl", {
+      env                                         = var.env
+      region                                      = var.region
+      account_id                                  = var.account_id
+      aws_load_balancer_controller__iam_role_name = local.aws_lb_controller_iam_role_name
+      enable_ha                                   = var.enable_ha
+      common_tags                                 = var.common_tags
     })
   ]
 

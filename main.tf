@@ -1,5 +1,5 @@
 terraform {
-  required_version = "1.15.8"
+  required_version = "1.16.1"
 
   required_providers {
     aws = {
@@ -23,6 +23,12 @@ provider "aws" {
   region = var.region
 }
 
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
 locals {
   common_tags = {
     Project = "HungAIOps"
@@ -36,12 +42,12 @@ locals {
 module "network" {
   source = "./modules/network"
 
-  env                       = var.env
-  region                    = var.region
-  availability_zones        = var.availability_zones
-  enable_ha                 = var.enable_ha
+  env                = var.env
+  region             = var.region
+  availability_zones = var.availability_zones
+  enable_ha          = var.enable_ha
 
-  common_tags = locals.common_tags
+  common_tags = local.common_tags
 }
 
 ##########################################
@@ -50,13 +56,14 @@ module "network" {
 module "eks" {
   source = "./modules/eks"
 
-  env                       = var.env
-  region                    = var.region
-  capacity        = var.initital_num_nodes
-  vpc_id                    = module.network.vpc_id
-  private_subnet_ids        = module.network.private_subnet_ids
+  env                = var.env
+  region             = var.region
+  capacity           = var.initital_num_nodes
+  ami_type           = var.ami_type
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.private_app_subnet_ids
 
-  common_tags = locals.common_tags
+  common_tags = local.common_tags
 }
 
 ##########################################
@@ -65,12 +72,13 @@ module "eks" {
 module "eks_addons" {
   source = "./modules/eks_addons"
 
-  env                       = var.env
-  region                    = var.region
-  oidc_provider_url         = module.eks.oidc_provider_url
-  oidc_provider_arn         = module.eks.oidc_provider_arn
+  env               = var.env
+  region            = var.region
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_url = module.eks.oidc_provider_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
 
-  common_tags = locals.common_tags
+  common_tags = local.common_tags
 }
 
 ##########################################
@@ -94,14 +102,14 @@ provider "helm" {
 module "aws_load_balancer_controller" {
   source = "./modules/aws_load_balancer_controller"
 
-  env                       = var.env
-  region                    = var.region
-  oidc_provider_url         = module.eks.oidc_provider_url
-  oidc_provider_arn         = module.eks.oidc_provider_arn
-  account_id                = var.account_id
-  enable_ha                 = var.enable_ha
+  env               = var.env
+  region            = var.region
+  oidc_provider_url = module.eks.oidc_provider_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  account_id        = var.account_id
+  enable_ha         = var.enable_ha
 
-  common_tags = locals.common_tags
+  common_tags = local.common_tags
 }
 
 ##########################################
@@ -115,9 +123,13 @@ module "karpenter" {
   oidc_provider_url         = module.eks.oidc_provider_url
   oidc_provider_arn         = module.eks.oidc_provider_arn
   account_id                = var.account_id
-  initital_num_nodes         = var.initital_num_nodes
+  initital_num_nodes        = var.initital_num_nodes
+  node_role_name            = module.eks.node_role_name
+  private_subnet_ids        = module.network.private_app_subnet_ids
+  cluster_security_group_id = module.eks.cluster_security_group_id
+  ami_type                  = var.ami_type
 
-  common_tags = locals.common_tags
+  common_tags = local.common_tags
 }
 
 ##########################################
@@ -126,6 +138,6 @@ module "karpenter" {
 module "istio" {
   source = "./modules/istio"
 
-  enable_ha                 = var.enable_ha
+  enable_ha = var.enable_ha
 }
 

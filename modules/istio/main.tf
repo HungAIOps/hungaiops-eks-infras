@@ -25,9 +25,10 @@ resource "helm_release" "istiod" {
   namespace  = local.istio_namespace
 
   values = [
-    templatefile("${path.module}/templates/istio.values.yaml.tftpl", {
-      istio_image_version = local.istio_image_version
+    templatefile("${path.module}/files/istio.values.yaml.tftpl", {
+      istio_image_version     = local.istio_image_version
       istio_autoscale_enabled = var.istio_autoscale_enabled
+      enable_ha               = var.enable_ha
     })
   ]
 
@@ -49,9 +50,10 @@ resource "helm_release" "istio_gateway" {
   namespace  = local.istio_namespace
 
   values = [
-    templatefile("${path.module}/templates/gateway-values.yaml.tftpl", {
-      istio_image_version = local.istio_image_version
-      enable_ha = var.enable_ha
+    templatefile("${path.module}/files/gateway.values.yaml.tftpl", {
+      istio_image_version     = local.istio_image_version
+      enable_ha               = var.enable_ha
+      istio_autoscale_enabled = var.istio_autoscale_enabled
     })
   ]
 

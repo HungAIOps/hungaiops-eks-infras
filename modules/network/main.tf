@@ -6,7 +6,7 @@ resource "aws_vpc" "main" {
 
   tags = merge(
     {
-      Name        = "${var.env}-vpc"
+      Name = "${var.env}-vpc"
     },
     var.common_tags
   )
@@ -27,13 +27,13 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public_subnets" {
   count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = locals.public_subnet_cidrs[count.index]
+  cidr_block              = local.public_subnet_cidrs[count.index]
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
   tags = merge(
     {
-      Name        = "${var.env}-public-subnet${count.index}"
+      Name = "${var.env}-public-subnet${count.index}"
     },
     var.common_tags
   )
@@ -45,7 +45,7 @@ resource "aws_subnet" "public_subnets" {
 resource "aws_subnet" "private_app_subnets" {
   count             = length(var.availability_zones)
   vpc_id            = aws_vpc.main.id
-  cidr_block        = locals.private_app_subnet_cidrs[count.index]
+  cidr_block        = local.private_app_subnet_cidrs[count.index]
   availability_zone = var.availability_zones[count.index]
 
   tags = merge(
@@ -61,7 +61,7 @@ resource "aws_subnet" "private_app_subnets" {
 # Elastic IPs for NAT Gateway
 ##########################################
 resource "aws_eip" "nat_eips" {
-  count         = var.enable_ha ? length(var.availability_zones) : 1
+  count  = var.enable_ha ? length(var.availability_zones) : 1
   domain = "vpc"
 
   tags = var.common_tags
@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "nat_gateways" {
 
   tags = merge(
     {
-      Name        = "${var.env}-nat-gateway-az${count.index}"
+      Name = "${var.env}-nat-gateway-az${count.index}"
     },
     var.common_tags
   )

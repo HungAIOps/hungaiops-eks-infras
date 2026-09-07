@@ -8,12 +8,6 @@ variable "region" {
   type        = string
 }
 
-variable "kubernetes_version" {
-  description = "Kubernetes version used for the EKS cluster"
-  type        = string
-  default     = "1.35"
-}
-
 variable "vpc_id" {
   description = "ID of the VPC"
   type        = string
@@ -40,6 +34,12 @@ variable "capacity" {
   description = "Desired number of worker nodes"
   type        = number
   default     = 2
+}
+
+variable "ami_type" {
+  description = "AMI type for EKS worker nodes"
+  type        = string
+  default     = "AL2_x86_64"
 }
 
 variable "common_tags" {

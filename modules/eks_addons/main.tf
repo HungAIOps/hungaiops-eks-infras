@@ -72,7 +72,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_observability_policy" {
 
 # Addon: VPC CNI
 resource "aws_eks_addon" "vpc_cni" {
-  cluster_name = aws_eks_cluster.main.name
+  cluster_name = var.cluster_name
   addon_name   = "vpc-cni"
 
   resolve_conflicts_on_create = "OVERWRITE"
@@ -83,7 +83,7 @@ resource "aws_eks_addon" "vpc_cni" {
 
 # Addon: CoreDNS
 resource "aws_eks_addon" "coredns" {
-  cluster_name = aws_eks_cluster.main.name
+  cluster_name = var.cluster_name
   addon_name   = "coredns"
 
   resolve_conflicts_on_create = "OVERWRITE"
@@ -94,7 +94,7 @@ resource "aws_eks_addon" "coredns" {
 
 # Addon: kube-proxy
 resource "aws_eks_addon" "kube_proxy" {
-  cluster_name = aws_eks_cluster.main.name
+  cluster_name = var.cluster_name
   addon_name   = "kube-proxy"
 
   resolve_conflicts_on_create = "OVERWRITE"
@@ -105,19 +105,19 @@ resource "aws_eks_addon" "kube_proxy" {
 
 # Addon: EBS CSI Driver
 resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name             = aws_eks_cluster.main.name
+  cluster_name             = var.cluster_name
   addon_name               = "aws-ebs-csi-driver"
   service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
 
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
-  tags       = var.common_tags
+  tags                        = var.common_tags
 }
 
 # Addon: CloudWatch Observability
 resource "aws_eks_addon" "cloudwatch_observability" {
-  cluster_name = aws_eks_cluster.main.name
-  addon_name   = "amazon-cloudwatch-observability"
+  cluster_name             = var.cluster_name
+  addon_name               = "amazon-cloudwatch-observability"
   service_account_role_arn = aws_iam_role.cloudwatch_observability.arn
 
   resolve_conflicts_on_create = "OVERWRITE"

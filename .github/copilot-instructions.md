@@ -29,9 +29,16 @@ Project structure:
 - Declare a type for every variable. Add a description for every variable and output. Use validation blocks for inputs with known constraints.
 - Prefer for_each over count for collections of named/distinguishable resources; reserve count for simple conditional or positional resources.
 - Look up AMIs, AZs, VPC IDs, etc. via data blocks rather than hardcoding IDs.
-- Use locals {} to name expressions that are reused or improve readability.
+- Use locals {} for constants variables that are not passed as inputs, computed values, and derived values to avoid repeating expressions.
 - Do not use emojis or icon characters in comments, docstrings, or commit messages.
 - Keep comments short and only add them when the code is not self-explanatory; explain why, not what.
+- Add a header comment above every resource/module/data block, formatted as:
+```
+##########################################
+# Karpenter Helm Release
+##########################################
+```
+- 
 
 ## Secrets & Security
 - Never hardcode AWS credentials, tokens, or private key material in `.tf` or `.tfvars` files.

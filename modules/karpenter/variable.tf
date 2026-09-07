@@ -14,9 +14,24 @@ variable "account_id" {
   type        = string
 }
 
+variable "node_role_name" {
+  description = "IAM role name used by Karpenter-provisioned nodes"
+  type        = string
+}
+
 variable "initital_num_nodes" {
   description = "Initial number of nodes to create in the cluster"
   type        = number
+}
+
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs used by Karpenter nodes"
+  type        = list(string)
+}
+
+variable "cluster_security_group_id" {
+  description = "Security group ID for the EKS cluster"
+  type        = string
 }
 
 variable "oidc_provider_url" {
@@ -27,6 +42,17 @@ variable "oidc_provider_url" {
 variable "oidc_provider_arn" {
   description = "ARN of the OIDC provider for the EKS cluster"
   type        = string
+}
+
+variable "ami_type" {
+  description = "AMI type for EKS worker nodes"
+  type        = string
+  default     = "AL2_x86_64"
+}
+
+variable "enable_ha" {
+  description = "Enable High Availability"
+  type        = bool
 }
 
 variable "common_tags" {

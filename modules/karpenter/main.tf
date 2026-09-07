@@ -5,7 +5,7 @@ resource "aws_iam_role" "karpenter" {
   name = "${var.region}-karpenter"
 
   assume_role_policy = templatefile(
-    "${path.module}/karpenter_assume_role_policy.json",
+    "${path.module}/files/assume_role_policy.json.tftpl",
     {
       oidc_provider_arn = var.oidc_provider_arn
       oidc_provider_url = var.oidc_provider_url
@@ -19,12 +19,12 @@ resource "aws_iam_policy" "karpenter" {
   description = "IAM Policy for Karpenter"
 
   policy = templatefile(
-    "${path.module}/karpenter_policy.json",
+    "${path.module}/files/policy_document.json.tftpl",
     {
-      account_id                  = var.account_id
-      region                      = var.region
-      cluster_name                = var.env
-      karpenter_node_iam_role_name = local.karpenter_iam_role_name
+      account_id                   = var.account_id
+      region                       = var.region
+      cluster_name                 = var.env
+      karpenter_node_iam_role_name = var.node_role_name
     }
   )
 }
@@ -45,9 +45,14 @@ resource "helm_release" "karpenter" {
   namespace  = "kube-system"
 
   values = [
-    templatefile("${path.module}/karpenter.values.yaml.tftpl", {
-      cluster_name = var.env
-      region       = var.region
+    templatefile("${path.module}/files/karpenter.values.yaml.tftpl", {
+      initital_num_nodes      = var.initital_num_nodes
+      karpenter_app_version   = local.karpenter_app_version
+      cluster_name            = var.env
+      region                  = var.region
+      karpenter_sa_name       = local.karpenter_sa_name
+      account_id              = var.account_id
+      karpenter_iam_role_name = aws_iam_role.karpenter.name
     })
   ]
 
@@ -55,3 +60,47 @@ resource "helm_release" "karpenter" {
     aws_iam_role_policy_attachment.karpenter
   ]
 }
+
+resource "helm_release" "karpenter_crd" {
+  name       = "karpenter-crd"
+  repository = "oci://public.ecr.aws/karpenter"
+  chart      = "karpenter-crd"
+  version    = local.karpenter_crd_chart_version
+  namespace  = "kube-system"
+}
+
+locals {
+  karpenter_manifests = yamldecode(templatefile("${path.module}/files/nodepool.yaml.tftpl", {
+    node_role_name            = var.node_role_name
+    private_subnet_ids        = var.private_subnet_ids
+    cluster_security_group_id = var.cluster_security_group_id
+    ec2nodeclass_name         = "${var.env}-karpenter"
+    nodepool_name             = "${var.env}-karpenter"
+    ami_type                  = var.ami_type
+  }))
+}
+
+##########################################
+# Karpenter EC2NodeClass
+##########################################
+resource "kubernetes_manifest" "ec2nodeclass" {
+  manifest = local.karpenter_manifests.ec2nodeclass
+
+  depends_on = [
+    helm_release.karpenter_crd,
+    helm_release.karpenter,
+  ]
+}
+
+##########################################
+# Karpenter NodePool
+##########################################
+resource "kubernetes_manifest" "nodepool" {
+  manifest = local.karpenter_manifests.nodepool
+
+  depends_on = [
+    helm_release.karpenter_crd,
+    helm_release.karpenter,
+  ]
+}
+

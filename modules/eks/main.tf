@@ -85,7 +85,7 @@ resource "aws_security_group" "eks_cluster_sg" {
 
   tags = merge(
     {
-      Name        = "${var.env}-cluster-sg"
+      Name = "${var.env}-cluster-sg"
     },
     var.common_tags
   )
@@ -95,9 +95,9 @@ resource "aws_security_group" "eks_cluster_sg" {
 # EKS Cluster
 ##########################################
 resource "aws_eks_cluster" "main" {
-  name     = "${var.env}"
+  name     = var.env
   role_arn = aws_iam_role.eks_cluster.arn
-  version  = var.kubernetes_version
+  version  = local.kubernetes_version
 
   vpc_config {
     security_group_ids      = [aws_security_group.eks_cluster_sg.id]
@@ -111,7 +111,7 @@ resource "aws_eks_cluster" "main" {
 
   tags = merge(
     {
-      Name        = "${var.env}"
+      Name = "${var.env}"
     },
     var.common_tags,
   )
@@ -126,9 +126,9 @@ resource "aws_eks_node_group" "main" {
   node_role_arn   = aws_iam_role.eks_node.arn
   subnet_ids      = var.private_subnet_ids
 
-  ami_type       = "AL2_x86_64" # Amazon Linux 2
+  ami_type       = var.ami_type
   instance_types = var.instance_types
-  capacity_type  = "ON_DEMAND"
+  capacity_type  = local.capacity_type
   disk_size      = var.disk_size
 
   scaling_config {
@@ -139,7 +139,11 @@ resource "aws_eks_node_group" "main" {
 
   update_config {
     max_unavailable = 1
-  } 
+  }
+
+  node_repair_config {
+    enabled = true
+  }
 
   labels = {
     role = "standard"
@@ -147,7 +151,7 @@ resource "aws_eks_node_group" "main" {
 
   tags = merge(
     {
-      Name        = "${var.env}-node-group"
+      Name = "${var.env}-node-group"
     },
     var.common_tags
   )

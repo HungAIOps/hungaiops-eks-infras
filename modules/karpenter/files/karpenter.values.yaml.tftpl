@@ -1,4 +1,4 @@
-replicas: ${ initital_num_nodes }
+replicas: ${ enable_ha ? initital_num_nodes : 1 }
 
 controller:
   image:
