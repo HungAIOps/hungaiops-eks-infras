@@ -1,5 +1,5 @@
 terraform {
-  required_version = "1.16.1"
+  required_version = ">= 1.5.0, < 2.0.0"
 
   required_providers {
     aws = {
@@ -60,6 +60,7 @@ module "eks" {
   region             = var.region
   capacity           = var.initital_num_nodes
   ami_type           = var.ami_type
+  capacity_type      = var.capacity_type
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_app_subnet_ids
 
@@ -128,6 +129,8 @@ module "karpenter" {
   private_subnet_ids        = module.network.private_app_subnet_ids
   cluster_security_group_id = module.eks.cluster_security_group_id
   ami_type                  = var.ami_type
+  capacity_type             = var.capacity_type == "ON_DEMAND" ? "on-demand" : "spot"
+  enable_ha                 = var.enable_ha
 
   common_tags = local.common_tags
 }
@@ -140,4 +143,3 @@ module "istio" {
 
   enable_ha = var.enable_ha
 }
-

@@ -1,4 +1,4 @@
-bucket         = "volunteerwork-dev-terraform-state"
-key            = "terraform.tfstate"
+bucket         = "myaiops-dev-terraform-state-us-east-1"
+key            = "dev1"
 region         = "us-east-1"
-dynamodb_table = "volunteerwork-dev-terraform-lock"
+use_lockfile = true

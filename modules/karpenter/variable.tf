@@ -55,6 +55,12 @@ variable "enable_ha" {
   type        = bool
 }
 
+variable "capacity_type" {
+  description = "Capacity type for EKS and Karpenter nodes"
+  type        = string
+  default     = "ON-DEMAND"
+}
+
 variable "common_tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)

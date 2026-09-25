@@ -36,3 +36,9 @@ variable "ami_type" {
   type        = string
   default     = "AL2_x86_64"
 }
+
+variable "capacity_type" {
+  description = "Capacity type for EKS and Karpenter nodes"
+  type        = string
+  default     = "ON_DEMAND"
+}

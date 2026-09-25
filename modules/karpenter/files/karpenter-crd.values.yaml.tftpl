@@ -1,0 +1,31 @@
+nodepool:
+  name: ${ env }-karpenter-nodepool
+  arch:
+    - amd64
+  capacityType:
+    - ${ capacity_type }
+  instanceCategories: []
+  limits:
+    cpu: "8"
+    memory: 50Gi
+
+ec2nodeclass:
+  name: ${ env }-karpenter-ec2nodeclass
+  amiFamily: ${ ami_type }
+  role: ${ node_role_name }
+  subnetIds:
+%{ for subnet_id in private_subnet_ids ~}
+    - ${ subnet_id }
+%{ endfor ~}
+  securityGroupId: ${ cluster_security_group_id }
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        deleteOnTermination: true
+        encrypted: true
+  tags: ${jsonencode(merge(
+    { Name = "${env}-cluster-sg" },
+    common_tags
+  ))}

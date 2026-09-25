@@ -107,7 +107,7 @@ resource "aws_route_table" "private_route_tables" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateways[count.index].id
+    nat_gateway_id = aws_nat_gateway.nat_gateways[var.enable_ha ? count.index : 0].id
   }
 
   tags = var.common_tags

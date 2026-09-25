@@ -13,6 +13,7 @@ Project structure:
 ├── variable.tf                   # Root-level input variable declarations
 ├── output.tf                     # Root-level outputs (e.g. instance IPs, cluster endpoint)
 ├── main.tf                        # Root module composition — wires child modules together
+├── backend-example.hcl      # Backend config example (S3 bucket named, DDynamoDB named, etc.)
 ├── terraform.tfvars.example       # Example var file, no secrets, committed
 ├── modules/
 │   ├── network/                   # VPC, subnets, route tables, IGW/NAT
@@ -35,10 +36,10 @@ Project structure:
 - Add a header comment above every resource/module/data block, formatted as:
 ```
 ##########################################
-# Karpenter Helm Release
+# <Resource/Module/Data Block Name>
 ##########################################
 ```
-- 
+- Follow terraform coding rules defined in terraform.instructions.md
 
 ## Secrets & Security
 - Never hardcode AWS credentials, tokens, or private key material in `.tf` or `.tfvars` files.

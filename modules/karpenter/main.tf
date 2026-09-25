@@ -53,6 +53,7 @@ resource "helm_release" "karpenter" {
       karpenter_sa_name       = local.karpenter_sa_name
       account_id              = var.account_id
       karpenter_iam_role_name = aws_iam_role.karpenter.name
+      enable_ha                = var.enable_ha
     })
   ]
 
@@ -63,44 +64,25 @@ resource "helm_release" "karpenter" {
 
 resource "helm_release" "karpenter_crd" {
   name       = "karpenter-crd"
-  repository = "oci://public.ecr.aws/karpenter"
-  chart      = "karpenter-crd"
+  repository = "oci://ghcr.io/hungaiops"
+  chart      = "karpenter-crd-chart"
   version    = local.karpenter_crd_chart_version
   namespace  = "kube-system"
-}
 
-locals {
-  karpenter_manifests = yamldecode(templatefile("${path.module}/files/nodepool.yaml.tftpl", {
-    node_role_name            = var.node_role_name
-    private_subnet_ids        = var.private_subnet_ids
-    cluster_security_group_id = var.cluster_security_group_id
-    ec2nodeclass_name         = "${var.env}-karpenter"
-    nodepool_name             = "${var.env}-karpenter"
-    ami_type                  = var.ami_type
-  }))
-}
-
-##########################################
-# Karpenter EC2NodeClass
-##########################################
-resource "kubernetes_manifest" "ec2nodeclass" {
-  manifest = local.karpenter_manifests.ec2nodeclass
+  values = [
+    templatefile("${path.module}/files/karpenter-crd.values.yaml.tftpl", {
+      env                       = var.env
+      region                    = var.region
+      private_subnet_ids        = var.private_subnet_ids
+      cluster_security_group_id = var.cluster_security_group_id
+      ami_type                  = var.ami_type
+      node_role_name            = var.node_role_name
+      capacity_type             = var.capacity_type
+      common_tags               = var.common_tags
+    })
+  ]
 
   depends_on = [
-    helm_release.karpenter_crd,
-    helm_release.karpenter,
+    aws_iam_role_policy_attachment.karpenter
   ]
 }
-
-##########################################
-# Karpenter NodePool
-##########################################
-resource "kubernetes_manifest" "nodepool" {
-  manifest = local.karpenter_manifests.nodepool
-
-  depends_on = [
-    helm_release.karpenter_crd,
-    helm_release.karpenter,
-  ]
-}
-
