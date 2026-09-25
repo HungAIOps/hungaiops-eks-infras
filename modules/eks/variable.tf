@@ -45,7 +45,7 @@ variable "ami_type" {
 variable "capacity_type" {
   description = "Capacity type for EKS and Karpenter nodes"
   type        = string
-  default     = "ON-DEMAND"
+  default     = "ON_DEMAND"
 }
 
 variable "common_tags" {
